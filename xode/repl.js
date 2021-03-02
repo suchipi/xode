@@ -87,7 +87,7 @@ module.exports = function startRepl() {
   const g = replServer.context;
 
   g.naut = g.require("naut");
-  g.require("naut/global");
+  Object.assign(g, g.naut);
 
   g.chalk = g.require("chalk");
   g.globby = g.require("globby");
