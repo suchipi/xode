@@ -8,10 +8,12 @@ const chalk = require("chalk");
 const { Module } = require("commonjs-standalone");
 const compile = require("./compile");
 const delegate = require("./delegate");
+const replContext = require("./replContext");
 
 module.exports = function startRepl() {
   const historyFile = path.join(os.homedir(), ".node_repl_history");
 
+  const requireCache = {};
   const replServer = repl.start({
     eval(evalCmd, context, file, cb) {
       let codeToRun = evalCmd;
@@ -60,7 +62,10 @@ module.exports = function startRepl() {
 
       try {
         debug("Running: " + chalk.black(chalk.bgBlue(codeToRun)));
-        const result = vm.runInContext(codeToRun, context);
+        const result = vm.runInContext(codeToRun, replServer.context, {
+          breakOnSigint: true,
+          filename: path.join(process.cwd(), "<repl>"),
+        });
         cb(null, result);
       } catch (err) {
         cb(err);
@@ -68,7 +73,8 @@ module.exports = function startRepl() {
     },
   });
 
-  const requireCache = {};
+  replContext.setValue(replServer.context);
+
   replServer.context.require = (source) => {
     const resolvedPath = delegate.resolve(
       source,
@@ -76,7 +82,7 @@ module.exports = function startRepl() {
     );
     return Module._load(resolvedPath, delegate, requireCache);
   };
-  replServer.context.require.cache = {};
+  replServer.context.require.cache = requireCache;
 
   try {
     fs.readFileSync(historyFile, "utf-8")

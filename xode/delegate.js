@@ -6,6 +6,7 @@ const resolve = require("resolve");
 const stripBom = require("strip-bom");
 const builtins = require("./builtins");
 const compile = require("./compile");
+const replContext = require("./replContext");
 
 const delegate = {
   resolve(id, fromFilePath) {
@@ -52,12 +53,28 @@ const delegate = {
       codeToRun = compile(code, filepath);
     }
 
-    const wrapper = vm.runInThisContext(
-      "(function (exports, require, module, __filename, __dirname, __builtins__) { " +
-        codeToRun +
-        "\n})",
-      { filename: filepath }
-    );
+    const maybeReplContext = replContext.getValue();
+
+    let wrapper;
+    if (maybeReplContext) {
+      debug(`Running in repl context...`);
+      wrapper = vm.runInContext(
+        "(function (exports, require, module, __filename, __dirname, __builtins__) { " +
+          codeToRun +
+          "\n})",
+        maybeReplContext,
+        { filename: filepath }
+      );
+    } else {
+      debug(`Running in parent context...`);
+      wrapper = vm.runInThisContext(
+        "(function (exports, require, module, __filename, __dirname, __builtins__) { " +
+          codeToRun +
+          "\n})",
+        { filename: filepath }
+      );
+    }
+
     wrapper(
       moduleEnv.exports,
       moduleEnv.require,
