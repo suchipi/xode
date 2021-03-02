@@ -86,7 +86,24 @@ const xodeBuiltins = {
   bluebird: () => loadBuiltin("bluebird", () => require("bluebird")),
   chalk: () => loadBuiltin("chalk", () => require("chalk")),
   globby: () => loadBuiltin("globby", () => require("globby")),
-  naut: () => loadBuiltin("naut", () => require("naut")),
+  naut: () =>
+    loadBuiltin("naut", () => {
+      const mod = require("naut");
+      // Work around nexe's fs.readdir monkey-patching
+      mod.ls = (dir) => {
+        let output = "";
+        if (dir) {
+          output = mod.$(`ls ${dir}`);
+        } else {
+          output = mod.$("ls");
+        }
+        return output
+          .split("\n")
+          .filter((f) => f.trim())
+          .map((f) => f.trim());
+      };
+      return mod;
+    }),
   pify: () => loadBuiltin("pify", () => require("pify")),
 };
 
