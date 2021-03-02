@@ -1,7 +1,7 @@
 const debug = require("debug")("xode/compile.js");
 const babel = require("@babel/core");
 
-module.exports = function compile(code, filePath) {
+module.exports = function compile(code, filePath, isRepl = false) {
   debug(`compiling '${filePath}'...`);
   const result = babel.transformSync(code, {
     filename: filePath,
@@ -20,11 +20,12 @@ module.exports = function compile(code, filePath) {
       require("@babel/plugin-proposal-class-properties").default,
       require("@babel/plugin-proposal-nullish-coalescing-operator").default,
       require("@babel/plugin-proposal-optional-chaining").default,
-      require("@babel/plugin-transform-modules-commonjs").default,
-
       filePath.endsWith(".ts") || filePath.endsWith(".tsx")
         ? null
         : require("@babel/plugin-transform-flow-strip-types").default,
+      isRepl
+        ? require("./sloppy-esm-repl-plugin")
+        : require("@babel/plugin-transform-modules-commonjs").default,
     ].filter(Boolean),
   });
   return result.code;

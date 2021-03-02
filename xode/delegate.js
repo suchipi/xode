@@ -30,6 +30,8 @@ const delegate = {
     if (filepath.startsWith("builtin:/")) {
       const builtinName = filepath.split("builtin:/")[1];
       return `module.exports = __builtins__[${JSON.stringify(builtinName)}]()`;
+    } else if (filepath.endsWith(".json")) {
+      return "module.exports = " + stripBom(fs.readFileSync(filepath, "utf-8"));
     } else {
       return stripBom(fs.readFileSync(filepath, "utf-8"));
     }
@@ -39,11 +41,14 @@ const delegate = {
     debug(`Running ${JSON.stringify(filepath)}...`);
 
     let codeToRun;
-    if (filepath.match(/node_modules/) && filepath.match(/\.js$/)) {
-      // skip compilation as any js files in node_modules are probably already runnable.
+    const skipCompile =
+      filepath.endsWith(".json") ||
+      (filepath.match(/node_modules/) && filepath.endsWith(".js")) ||
+      filepath.startsWith("builtin:/");
+
+    if (skipCompile) {
       codeToRun = code;
     } else {
-      // but for files outside of node_modules or files that don't end in .js, compile them
       codeToRun = compile(code, filepath);
     }
 
