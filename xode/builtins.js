@@ -90,12 +90,21 @@ const xodeBuiltins = {
     loadBuiltin("naut", () => {
       const mod = require("naut");
       // Work around nexe's fs.readdir monkey-patching
-      mod.ls = (dir) => {
+      mod.ls = (...args) => {
+        let opt = "",
+          dir;
+        if (args.length === 2) {
+          opt = args[0];
+          dir = args[1];
+        } else {
+          dir = args[0];
+        }
+
         let output = "";
         if (dir) {
-          output = mod.$(`ls ${dir}`);
+          output = mod.$(`ls ${opt} ${JSON.stringify(dir)}`);
         } else {
-          output = mod.$("ls");
+          output = mod.$(`ls ${opt}`);
         }
         return output
           .split("\n")
