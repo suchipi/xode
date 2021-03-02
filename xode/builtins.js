@@ -83,6 +83,11 @@ const xodeBuiltins = {
   // For example, to add react and react-dom as builtin modules, uncomment the next two lines:
   // "react": () => loadBuiltin("react", () => require("react")),
   // "react-dom": () => loadBuiltin("react-dom", () => require("react-dom")),
+  bluebird: () => loadBuiltin("bluebird", () => require("bluebird")),
+  chalk: () => loadBuiltin("chalk", () => require("chalk")),
+  globby: () => loadBuiltin("globby", () => require("globby")),
+  naut: () => loadBuiltin("naut", () => require("naut")),
+  pify: () => loadBuiltin("pify", () => require("pify")),
 };
 
 const builtins = Object.assign({}, normalBuiltins, xodeBuiltins);

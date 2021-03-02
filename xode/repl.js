@@ -84,6 +84,16 @@ module.exports = function startRepl() {
   };
   replServer.context.require.cache = requireCache;
 
+  const g = replServer.context;
+
+  g.naut = g.require("naut");
+  g.require("naut/global");
+
+  g.chalk = g.require("chalk");
+  g.globby = g.require("globby");
+  g.pify = g.require("pify");
+  g.bluebird = g.Bluebird = g.require("bluebird");
+
   try {
     fs.readFileSync(historyFile, "utf-8")
       .split("\n")
